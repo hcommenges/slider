@@ -60,7 +60,8 @@ tags$title("SLIDER: Software for LongItudinal Data Exploration with R"))
     tabsetPanel(
       tabPanel("Data summary", 
                verbatimTextOutput("datasummary"),
-               tableOutput("contents")
+               #tableOutput("contents")
+               dataTableOutput('contents')
       ),
       
       tabPanel("Slide plot", 

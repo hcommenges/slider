@@ -176,13 +176,21 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  output$contents <- renderTable({
+  output$contents <- renderDataTable({
     if(!is.null(readData()) && length(input$timecol) > 1){
       return(head(selecData(), n = 20))
     } else {
       return()
     }
   })
+  
+#   output$contents <- renderTable({
+#     if(!is.null(readData()) && length(input$timecol) > 1){
+#       return(head(selecData(), n = 20))
+#     } else {
+#       return()
+#     }
+#   })
   
   # slide plot panel
   
