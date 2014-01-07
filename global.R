@@ -110,5 +110,5 @@ seqdefinition <- function(df){
   
   stsObject <- seqdef(df, seq(1, nbCol, 1), states = stateAlphabet, labels = stateAlphabet, cpal = colorPal)
   
-  return(stsobject)
+  return(stsObject)
 }
