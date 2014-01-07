@@ -1,11 +1,8 @@
 ##############################
-# Shiny App: ITOU
+# Shiny App: SLIDER - Software for LongItudinal Data Exploration with R
 # Server
 ##############################
 
-##### dans transition rate, 1 tab avec effectifs, 1 tab pct en lignes, 1 tab pct
-##### en colonnes dans slide plot, surimposer les effectifs pour chaque trait,
-##### avec option "show frequencies" tester la fonction seqpcplot
 
 shinyServer(function(input, output, session) {
   
@@ -261,7 +258,7 @@ shinyServer(function(input, output, session) {
   
   output$seqindex <- renderPlot({
     if(!is.null(readData()) && length(input$timecol) > 1){
-      seqiplot(createSts(), border = input$borderiplot, tlim = seq(input$inSliderseqi[1], input$inSliderseqi[2], 1))
+      seqiplot(createSts(), border = input$borderiplot, tlim = seq(input$inSliderseqi[1], input$inSliderseqi[2], 1), withlegend = "right")
     } else {
       return()
     }
@@ -279,7 +276,7 @@ shinyServer(function(input, output, session) {
   
   output$seqfreq <- renderPlot({
     if(!is.null(readData()) && length(input$timecol) > 1){
-      seqfplot(createSts(), border = input$borderfplot)
+      seqfplot(createSts(), border = input$borderfplot, withlegend = "right")
     } else {
       return()
     }
@@ -297,7 +294,7 @@ shinyServer(function(input, output, session) {
   
   output$seqdistr <- renderPlot({
     if(!is.null(readData()) && length(input$timecol) > 1){
-      seqdplot(createSts(), border = input$borderdplot)
+      seqdplot(createSts(), border = input$borderdplot, withlegend = "right")
     } else {
       return()
     }

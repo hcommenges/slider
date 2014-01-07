@@ -1,5 +1,5 @@
 ##############################
-# Shiny App: ITOU
+# Shiny App: SLIDER - Software for LongItudinal Data Exploration with R
 # Packages and functions
 ##############################
 
@@ -17,100 +17,77 @@ require(TraMineR)
 slideplot <- function(df, threshold, mask, showfreq, thickmin)
 {
   if(is.character(df[ , 1]) == TRUE){
-    vUniqueVal <- sort(unique(unlist(df)))
-    df <- colwise(factor, levels = vUniqueVal, labels = vUniqueVal)(df)
+    uniqueVal <- sort(unique(unlist(df)))
+    df <- colwise(factor, levels = uniqueVal, labels = uniqueVal)(df)
   } else {
-    vUniqueVal <- sort(unique(unlist(df)))
-    df <- colwise(factor, levels = vUniqueVal, labels = letters[seq(1, length(vUniqueVal), 1)])(df)
+    uniqueVal <- sort(unique(unlist(df)))
+    df <- colwise(factor, levels = uniqueVal, labels = letters[seq(1, length(uniqueVal), 1)])(df)
   }
   
-  vAlphabet <- levels(unlist(df))
-  vTimeLabel <- colnames(df)
-  vNbColInit <- length(vTimeLabel)
+  stateAlphabet <- levels(unlist(df))
+  timeLabels <- colnames(df)
+  nbCol <- length(timeLabels)
   
   # create flows
-  lFlows <- list()
-  for(i in 1:(vNbColInit - 1)){
-    vFlows <- paste(paste(i, as.integer(df[ , i]), sep = "-"), paste(i + 1, as.integer(df[ , i + 1]), sep = "-"), sep = "_")
-    lFlows[[length(lFlows) + 1]] <- vFlows
+  transFlowslist <- list()
+  for(i in 1:(nbCol - 1)){
+    transFlows <- paste(paste(i, as.integer(df[ , i]), sep = "-"), paste(i + 1, as.integer(df[ , i + 1]), sep = "-"), sep = "_")
+    transFlowslist <- c(transFlowslist, transFlows)
   }
-  vConcatFlows <- unlist(lFlows)
-  dFlows <- as.data.frame(table(vConcatFlows))
-  colnames(dFlows) <- c("FLOWID", "FREQ")
+  concatFlows <- unlist(transFlowslist)
+  flowsTable <- as.data.frame(table(concatFlows))
+  colnames(flowsTable) <- c("FLOWID", "FREQ")
   
   # split coordinates
-  dFlows$FLOWID <- as.character(dFlows$FLOWID)
-  dCoords <- colsplit(dFlows$FLOWID, pattern = "_", names = c("COORDORI", "COORDDES"))
-  dCoordsOri <- colsplit(dCoords$COORDORI, pattern = "-", names = c("XORI", "YORI"))
-  dCoordsDes <- colsplit(dCoords$COORDDES, pattern = "-", names = c("XDES", "YDES"))
-  dFlows <- cbind(dFlows, dCoordsOri, dCoordsDes)
+  flowsTable$FLOWID <- as.character(flowsTable$FLOWID)
+  coordFlows <- colsplit(flowsTable$FLOWID, pattern = "_", names = c("COORDORI", "COORDDES"))
+  coordOri <- colsplit(coordFlows$COORDORI, pattern = "-", names = c("XORI", "YORI"))
+  coordDes <- colsplit(coordFlows$COORDDES, pattern = "-", names = c("XDES", "YDES"))
+  flowsTable <- cbind(flowsTable, coordOri, coordDes)
   
   # get min and max vales
-  vScaleVal <- thickmin * max(dFlows$FREQ) / (threshold + 1)
+  scaleValue <- thickmin * max(flowsTable$FREQ) / (threshold + 1)
   
   # set treshold fields
-  dFlows$FREQBLACK <- ifelse(dFlows$FREQ > threshold, dFlows$FREQ, NA)
-  dFlows$FREQGREY <- as.numeric(ifelse(dFlows$FREQ > threshold, NA, (threshold + 1)))
-  dFlows$FREQTEXT <- ifelse(dFlows$FREQ > threshold, dFlows$FREQ, NA)
-
-  dFlows$XTEXT <- apply(dFlows[ , c("XORI", "XDES")], 1, mean)
-  dFlows$YTEXT <- apply(dFlows[ , c("YORI", "YDES")], 1, mean)
-  dFlows$SLOPE <- with(dFlows, (YDES - YORI) / (XDES - XORI))
-  dFlows$INTERCEPT <- with(dFlows, (YTEXT - SLOPE * XTEXT))
-  dFlows$YTEXTCORR <- with(dFlows, ifelse(SLOPE == 0, YTEXT, 
-                                          ifelse(SLOPE < 0, YTEXT - 0.1 * abs(SLOPE), YTEXT + 0.1 * abs(SLOPE))))
-  dFlows$XTEXTCORR <- with(dFlows, ifelse(SLOPE == 0, XTEXT, 
-                                          ifelse(SLOPE < 0, (YTEXTCORR - INTERCEPT) / SLOPE - 0.1, (YTEXTCORR - INTERCEPT) / SLOPE + 0.1)))
-    
+  flowsTable$FREQUPON <- ifelse(flowsTable$FREQ > threshold, flowsTable$FREQ, NA)
+  flowsTable$FREQBELOW <- as.numeric(ifelse(flowsTable$FREQ > threshold, NA, (threshold + 1)))
+  
+  # position text labels 
+  flowsTable$XTEXT <- apply(flowsTable[ , c("XORI", "XDES")], 1, mean)
+  flowsTable$YTEXT <- apply(flowsTable[ , c("YORI", "YDES")], 1, mean)
+  flowsTable$SLOPE <- with(flowsTable, (YDES - YORI) / (XDES - XORI))
+  flowsTable$INTERCEPT <- with(flowsTable, (YTEXT - SLOPE * XTEXT))
+  flowsTable$YTEXTCORR <- with(flowsTable, ifelse(SLOPE == 0, YTEXT, 
+                                                  ifelse(SLOPE < 0, YTEXT - 0.1 * abs(SLOPE), YTEXT + 0.1 * abs(SLOPE))))
+  flowsTable$XTEXTCORR <- with(flowsTable, ifelse(SLOPE == 0, XTEXT, 
+                                                  ifelse(SLOPE < 0, (YTEXTCORR - INTERCEPT) / SLOPE - 0.1, (YTEXTCORR - INTERCEPT) / SLOPE + 0.1)))
+  
   
   # plot flows
-  if(showfreq == TRUE){
-    if(mask == FALSE){
-      pSlidePlot <- ggplot(dFlows) + 
-        geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQGREY), colour = "lightgrey", lineend = "round") +
-        geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBLACK), colour = "black", lineend = "round") +
-        geom_text(aes(x = XTEXTCORR, y = YTEXTCORR, label = FREQTEXT), colour = "#CD3700", fontface = "bold") +
-        scale_x_discrete("Timeline", labels = vTimeLabel) +
-        scale_y_discrete("Categories", labels = vAlphabet) +
-        scale_size_continuous("Frequencies", range = c(thickmin, vScaleVal)) +
-        theme_bw() + theme(panel.grid.major = element_line(colour = NA), panel.grid.minor = element_line(colour = NA))
-    }
-    
-    if(mask == TRUE){
-      pSlidePlot <- ggplot(dFlows) + 
-        geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQGREY), colour = "white", lineend = "round") +
-        geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBLACK), colour = "black", lineend = "round") +
-        geom_text(aes(x = XTEXTCORR, y = YTEXTCORR, label = FREQTEXT), colour = "#CD3700", fontface = "bold") +
-        scale_x_discrete("Timeline", labels = vTimeLabel) +
-        scale_y_discrete("Categories", labels = vAlphabet) +
-        scale_size_continuous("Frequencies", range = c(thickmin, vScaleVal)) +
-        theme_bw() + theme(panel.grid.major = element_line(colour = NA), panel.grid.minor = element_line(colour = NA))
-    }
+  
+  if(mask == FALSE){
+    slidePlot <- ggplot(flowsTable) + 
+      geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBELOW), colour = "lightgrey", lineend = "round") +
+      geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQUPON), colour = "black", lineend = "round") +
+      scale_x_discrete("Timeline", labels = timeLabels) +
+      scale_y_discrete("Categories", labels = stateAlphabet) +
+      scale_size_continuous("Frequencies", range = c(thickmin, scaleValue)) +
+      theme_bw() + theme(panel.grid.major = element_line(colour = NA), panel.grid.minor = element_line(colour = NA))
   }
   
-  if(showfreq == FALSE){
-    if(mask == FALSE){
-      pSlidePlot <- ggplot(dFlows) + 
-        geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQGREY), colour = "lightgrey", lineend = "round") +
-        geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBLACK), colour = "black", lineend = "round") +
-        scale_x_discrete("Timeline", labels = vTimeLabel) +
-        scale_y_discrete("Categories", labels = vAlphabet) +
-        scale_size_continuous("Frequencies", range = c(thickmin, vScaleVal)) +
-        theme_bw() + theme(panel.grid.major = element_line(colour = NA), panel.grid.minor = element_line(colour = NA))
-    }
-    
-    if(mask == TRUE){
-      pSlidePlot <- ggplot(dFlows) + 
-        geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQGREY), colour = "white", lineend = "round") +
-        geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBLACK), colour = "black", lineend = "round") +
-        scale_x_discrete("Timeline", labels = vTimeLabel) +
-        scale_y_discrete("Categories", labels = vAlphabet) +
-        scale_size_continuous("Frequencies", range = c(thickmin, vScaleVal)) +
-        theme_bw() + theme(panel.grid.major = element_line(colour = NA), panel.grid.minor = element_line(colour = NA))
-    }
+  else if(mask == TRUE){
+    slidePlot <- ggplot(flowsTable) + 
+      geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBELOW), colour = "white", lineend = "round") +
+      geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQUPON), colour = "black", lineend = "round") +
+      scale_x_discrete("Timeline", labels = timeLabels) +
+      scale_y_discrete("Categories", labels = stateAlphabet) +
+      scale_size_continuous("Frequencies", range = c(thickmin, scaleValue)) +
+      theme_bw() + theme(panel.grid.major = element_line(colour = NA), panel.grid.minor = element_line(colour = NA))
   }
   
-  return(pSlidePlot)  
+  if(showfreq == TRUE) {slidePlot  <-  slidePlot + geom_text(aes(x = XTEXTCORR, y = YTEXTCORR, label = FREQUPON), colour = "#CD3700", fontface = "bold")}
+  
+  return(slidePlot)  
 }
 
 
@@ -120,25 +97,18 @@ slideplot <- function(df, threshold, mask, showfreq, thickmin)
 
 seqdefinition <- function(df){
   if(is.character(df[ , 1]) == TRUE){
-    vUniqueVal <- sort(unique(unlist(df)))
-    df <- colwise(factor, levels = vUniqueVal, labels = vUniqueVal)(df)
+    uniqueVal <- sort(unique(unlist(df)))
+    df <- colwise(factor, levels = uniqueVal, labels = uniqueVal)(df)
   } else {
-    vUniqueVal <- sort(unique(unlist(df)))
-    df <- colwise(factor, levels = vUniqueVal, labels = letters[seq(1, length(vUniqueVal), 1)])(df)
+    uniqueVal <- sort(unique(unlist(df)))
+    df <- colwise(factor, levels = uniqueVal, labels = letters[seq(1, length(uniqueVal), 1)])(df)
   }
-  vAlphabet <- levels(unlist(df))
-  vTimeLabel <- colnames(df)
-  vNbColInit <- length(vTimeLabel)
+  stateAlphabet <- levels(unlist(df))
+  timeLabels <- colnames(df)
+  nbCol <- length(timeLabels)
+  colorPal <- brewer.pal(length(stateAlphabet), "Set3")
   
-  vColors <- brewer.pal(length(vAlphabet), "Set3")
+  stsObject <- seqdef(df, seq(1, nbCol, 1), states = stateAlphabet, labels = stateAlphabet, cpal = colorPal)
   
-  stsobject <- seqdef(df, seq(1, vNbColInit, 1), states = vAlphabet, labels = vAlphabet, cpal = vColors)
   return(stsobject)
-  
 }
-
-
-
-
-
-

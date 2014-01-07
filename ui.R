@@ -1,5 +1,5 @@
 ##############################
-# Shiny App: ITOU
+# Shiny App: SLIDER - Software for LongItudinal Data Exploration with R
 # User interface
 ##############################
 
