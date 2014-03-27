@@ -10,7 +10,7 @@ require(plyr)
 require(reshape2)
 require(ggplot2)
 require(TraMineR)
-
+require(RColorBrewer)
 
 # slideplot function ----
 
