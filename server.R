@@ -80,14 +80,14 @@ shinyServer(function(input, output, session) {
   factMod2 <- input$factmod2
   
   if (!is.null(fullData) && length(timeCol) > 1){
-    if (factMod1 == "none") {
-      if (factMod2 == "none") {
+    if (is.null(factMod1)) {
+      if (is.null(factMod2)) {
         return(fullData[, timeCol])
       } else {
         return(fullData[fullData[, factCol2] %in% factMod2, timeCol])
       }
     } else {
-      if (factMod2 == "none") {
+      if (is.null(factMod2)) {
         return(fullData[fullData[, factCol1] %in% factMod1, timeCol])
       } else {
         return(fullData[((fullData[, factCol1] %in% factMod1) & (fullData[, factCol2] %in% factMod2)), timeCol])
@@ -135,8 +135,8 @@ shinyServer(function(input, output, session) {
   output$slidermod1 <- renderUI({
     if(!is.null(readData()) && length(input$timecol) > 1){
       uniqueModalities1 <- sort(as.character(unique(readData()[,input$factcol1])))
-      modalitiesList1 <- c("none", uniqueModalities1)
-      selectInput(inputId="factmod1", label="Choose 1st group", choices=modalitiesList1, selected="none", multiple=TRUE)
+      modalitiesList1 <- uniqueModalities1
+      selectInput(inputId = "factmod1", label = "Choose 1st group", choices = modalitiesList1, selected = NULL, multiple = TRUE)
     } else{
       return()
     }
@@ -145,8 +145,8 @@ shinyServer(function(input, output, session) {
   output$slidermod2 <- renderUI({
     if(!is.null(readData()) && length(input$timecol) > 1){
       uniqueModalities2 <- sort(as.character(unique(readData()[,input$factcol2])))
-      modalitiesList2 <- c("none", uniqueModalities2)
-      selectInput(inputId="factmod2", label="Choose 2nd group", choices=modalitiesList2, selected="none", multiple=TRUE)
+      modalitiesList2 <- uniqueModalities2
+      selectInput(inputId = "factmod2", label = "Choose 2nd group", choices = modalitiesList2, selected = NULL, multiple = TRUE)
     } else{
       return()
     }
@@ -175,19 +175,11 @@ shinyServer(function(input, output, session) {
   
   output$contents <- renderDataTable({
     if(!is.null(readData()) && length(input$timecol) > 1){
-      return(head(selecData(), n = 20))
+      return(selecData())
     } else {
       return()
     }
   })
-  
-#   output$contents <- renderTable({
-#     if(!is.null(readData()) && length(input$timecol) > 1){
-#       return(head(selecData(), n = 20))
-#     } else {
-#       return()
-#     }
-#   })
   
   # slide plot panel
   
@@ -360,18 +352,12 @@ shinyServer(function(input, output, session) {
     content = function(file) {
       svg(file, width = input$widthseqd / 2.54, height = input$heightseqd / 2.54, pointsize = 8)
       if(!is.null(readData()) && length(input$timecol) > 1){
-        seqdplot(createSts(), border = input$borderiplot)
+        seqdplot(createSts(), border = input$borderdplot)
       } else {
         return()
       }
       dev.off()
     })
   
-  output$downloadfct <- downloadHandler(
-    filename = "SlideplotFunction.R",
-    content = function(file) {
-      dump("slideplot", file=file)
-    }    
-  )
   
 })

@@ -8,6 +8,7 @@
 
 require(plyr)
 require(reshape2)
+require(RColorBrewer)
 require(ggplot2)
 require(TraMineR)
 
