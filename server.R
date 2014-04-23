@@ -52,57 +52,69 @@ shinyServer(function(input, output, session) {
     }
   })
   
-  observe({
-    print(input$timecol)
-  })
   
   # update column names
   updateCol <- function(session, columns){
     updateSelectInput(session = session, inputId = "timecol", choices = columns)
-    updateSelectInput(session = session, inputId = "factcol1", choices = columns)
-    updateSelectInput(session = session, inputId = "factcol2", choices = columns)
   }
   
   updateExampleCol <- function(session, columns){
-    print(columns)
-    updateSelectInput(session = session, inputId = "timecol", choices = columns, selected= columns)
-    updateSelectInput(session = session, inputId = "factcol1", choices = columns)
-    updateSelectInput(session = session, inputId = "factcol2", choices = columns)
+    updateSelectInput(session = session, inputId = "timecol", choices = columns, selected = columns)
   }
   
   # select data by factors
   selecData <- reactive({
-  fullData <- readData()
-  timeCol <- input$timecol
-  factCol1 <- input$factcol1
-  factCol2 <- input$factcol2
-  factMod1 <- input$factmod1
-  factMod2 <- input$factmod2
-  
-  if (!is.null(fullData) && length(timeCol) > 1){
-    if (is.null(factMod1)) {
-      if (is.null(factMod2)) {
-        return(fullData[, timeCol])
+    fullData <- readData()
+    timeCol <- input$timecol
+    factCol1 <- input$factcol1
+    factCol2 <- input$factcol2
+    factMod1 <- input$factmod1
+    factMod2 <- input$factmod2
+    wgtCol <- input$weightcol
+    
+    if (!is.null(fullData) && length(timeCol) > 1){
+      if (is.null(factMod1)) {
+        if (is.null(factMod2)) {
+          timeSteps <- fullData[, timeCol]
+        } else {
+          timeSteps <- fullData[fullData[, factCol2] %in% factMod2, timeCol]
+        }
       } else {
-        return(fullData[fullData[, factCol2] %in% factMod2, timeCol])
+        if (is.null(factMod2)) {
+          timeSteps <- fullData[fullData[, factCol1] %in% factMod1, timeCol]
+        } else {
+          timeSteps <- fullData[((fullData[, factCol1] %in% factMod1) & (fullData[, factCol2] %in% factMod2)), timeCol]
+        }
       }
     } else {
-      if (is.null(factMod2)) {
-        return(fullData[fullData[, factCol1] %in% factMod1, timeCol])
-      } else {
-        return(fullData[((fullData[, factCol1] %in% factMod1) & (fullData[, factCol2] %in% factMod2)), timeCol])
-      }
+      timeSteps <- NULL
     }
-  } else {
-    return()
-  }
-})
+    
+    if(is.character(timeSteps[ , 1]) == TRUE){
+      uniqueVal <- sort(unique(unlist(timeSteps)))
+      timeSteps <- colwise(factor, levels = uniqueVal, labels = uniqueVal)(timeSteps)
+    } else {
+      uniqueVal <- sort(unique(unlist(timeSteps)))
+      timeSteps <- colwise(factor, levels = uniqueVal, labels = paste("CAT_", uniqueVal, sep = ""))(timeSteps)
+    }
+    return(timeSteps)
+  })
+  
+  # select weight variable
+  selecWgt <- reactive({
+    if(!is.null(input$weightcol)){
+      return <- as.vector(readData()[row.names(selecData()), input$weightcol])
+    } else {
+      return(NULL)
+    }
+  })
+
   
   # create state sequence object (TraMineR)
   createSts <- reactive({
     if(!is.null(readData()) && length(input$timecol) > 1){
       seqdf <- selecData()
-      stsobj <- seqdefinition(seqdf)
+      stsobj <- seqdefinition(seqdf, wgt = selecWgt())
     } else {
       return()
     }
@@ -115,9 +127,9 @@ shinyServer(function(input, output, session) {
   output$sliderthreshold <- renderUI({
     if(!is.null(readData()) && length(input$timecol) > 1){
       flowtab <- selecData()
-      splot <- slideplot(flowtab, threshold = 1, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin)
+      splot <- slideplot(flowtab, threshold = 1, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin, wgtvar = selecWgt())
       maxfreq <- max(splot$data$FREQ)
-      sliderInput(inputId="inSlidersp", label="Threshold", min=0, max=maxfreq - 1, value=round(maxfreq / 4, digits = 0) , step=1)
+      sliderInput(inputId = "inSlidersp", label = "Threshold", min = 0, max = maxfreq - 1, value = round(maxfreq / 4, digits = 0) , step = 1)
     } else{
       return()
     }
@@ -126,31 +138,59 @@ shinyServer(function(input, output, session) {
   output$sliderseqi <- renderUI({
     if(!is.null(readData()) && length(input$timecol) > 1){
       nmaxseq <- nrow(selecData())
-      sliderInput(inputId="inSliderseqi", label="Index of sequences", min=1, max=nmaxseq, value=c(1, 10) , step=1)
+      sliderInput(inputId = "inSliderseqi", label = "Index of sequences", min = 1, max = nmaxseq, value = c(1, 10) , step = 1)
     } else{
       return()
     }
   })
+    
+  output$selectwgt <- renderUI({
+    if(!is.null(readData()) && length(input$timecol) > 1){
+      colNames <- colnames(readData())
+      selectInput(inputId = "weightcol", label = "Choose weighting variable (optional)", choices = colNames, multiple = TRUE)
+    } else {
+      return()
+    }
+  })
   
-  output$slidermod1 <- renderUI({
+  output$selectfac1 <- renderUI({
+    if(!is.null(readData()) && length(input$timecol) > 1){
+      colNames <- colnames(readData())
+      selectInput(inputId = "factcol1", label = "Choose 1st factor (optional)", choices = colNames, multiple = TRUE)
+    } else {
+      return()
+    }
+  })
+  
+  output$selectfac2 <- renderUI({
+    if(!is.null(readData()) && length(input$timecol) > 1){
+      colNames <- colnames(readData())
+      selectInput(inputId = "factcol2", label = "Choose 2nd factor (optional)", choices = colNames, multiple = TRUE)
+    } else {
+      return()
+    }
+  })
+  
+  output$selectmod1 <- renderUI({
     if(!is.null(readData()) && length(input$timecol) > 1){
       uniqueModalities1 <- sort(as.character(unique(readData()[,input$factcol1])))
       modalitiesList1 <- uniqueModalities1
-      selectInput(inputId = "factmod1", label = "Choose 1st group", choices = modalitiesList1, selected = NULL, multiple = TRUE)
-    } else{
+      selectInput(inputId = "factmod1", label = "Choose 1st group", choices = modalitiesList1, multiple = TRUE)
+    } else {
       return()
     }
   })
   
-  output$slidermod2 <- renderUI({
+  output$selectmod2 <- renderUI({
     if(!is.null(readData()) && length(input$timecol) > 1){
       uniqueModalities2 <- sort(as.character(unique(readData()[,input$factcol2])))
       modalitiesList2 <- uniqueModalities2
-      selectInput(inputId = "factmod2", label = "Choose 2nd group", choices = modalitiesList2, selected = NULL, multiple = TRUE)
-    } else{
+      selectInput(inputId = "factmod2", label = "Choose 2nd group", choices = modalitiesList2, multiple = TRUE)
+    } else {
       return()
     }
   })
+  
   
   # data summary panel
   output$datasummary <- renderText({
@@ -194,7 +234,7 @@ shinyServer(function(input, output, session) {
   output$slideplot <- renderPlot({
     if(!is.null(readData()) && length(input$timecol) > 1){
       flowtab <- selecData()
-      print(slideplot(flowtab, threshold = input$inSlidersp, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin))
+      print(slideplot(flowtab, threshold = input$inSlidersp, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin, wgtvar = selecWgt()))
     } else {
       return()
     }
@@ -213,7 +253,15 @@ shinyServer(function(input, output, session) {
   
   output$pcplot <- renderPlot({
     if(!is.null(readData()) && length(input$timecol) > 1){
-      seqpcplot(createSts(), ltype="non-embeddable", cex=input$pccex, lwd=input$pclwd, grid.scale=input$pcgrid, embedding="most-frequent", lorder="foreground", lcourse="upwards", order.align="time")
+      seqpcplot(createSts(), 
+                ltype = "non-embeddable",
+                cex = input$pccex, 
+                lwd = input$pclwd, 
+                grid.scale = input$pcgrid, 
+                embedding = "most-frequent", 
+                lorder = "foreground", 
+                lcourse = "upwards", 
+                order.align = "time")
     } else {
       return()
     }
@@ -224,7 +272,7 @@ shinyServer(function(input, output, session) {
   
   output$transratetext <- renderText({
     if(!is.null(readData()) && length(input$timecol) > 1){
-      tratetext <- "Transition rates are the frequency of transition from one state to another, as observed in the dataset. \nIt is conceived as a row percentage."  
+      tratetext <- "Transition rates are the frequency of transition from one state to another, as observed in the dataset. \nIt may be read as an origin-detination matrix, with absolute or relative frequency."  
     } else {
       return()
     }
@@ -232,7 +280,31 @@ shinyServer(function(input, output, session) {
   
   output$transrate <- renderTable({
     if(!is.null(readData()) && length(input$timecol) > 1){
-      transitionRate <- as.data.frame(round(seqtrate(createSts()), digits = 2))
+      if(!is.null(input$weightcol)){
+        rowPercent <- seqtrate(createSts(), weighted = TRUE)
+        oriStates <- selecData()[ , -ncol(selecData())]
+        tabCont <- colwise(tabwgt, wgt = selecWgt())(oriStates)
+        tabContAggreg <- apply(tabCont, 1, sum, na.rm = TRUE)
+        absFreq <- rowPercent * tabContAggreg
+        mode(absFreq) <- "integer"
+        colPercent <- t(t(absFreq) / apply(absFreq, 2, sum))
+      } else {
+        rowPercent <- seqtrate(createSts(), weighted = FALSE)
+        tabCont <- as.vector(table(as.matrix(selecData()[ , -ncol(selecData())])))
+        absFreq <- rowPercent * tabCont
+        mode(absFreq) <- "integer"
+        colPercent <- t(t(absFreq) / apply(absFreq, 2, sum))
+      }
+
+      if(input$transparameter == "absfreq"){
+        return(as.data.frame(absFreq))
+      }
+      if(input$transparameter == "rowpct"){
+        return(as.data.frame(round(rowPercent, digits = 2)))
+      }
+      if(input$transparameter == "colpct"){
+        return(as.data.frame(round(colPercent, digits = 2)))
+      }
     } else {
       return()
     }
@@ -301,7 +373,7 @@ shinyServer(function(input, output, session) {
       svg(file, width = input$widthslide / 2.54, height = input$heightslide / 2.54, pointsize = 8)
       if(!is.null(readData()) && length(input$timecol) > 1){
         flowtab <- selecData()
-        print(slideplot(flowtab, threshold = input$inSlidersp, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin))
+        print(slideplot(flowtab, threshold = input$inSlidersp, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin, wgtvar = selecWgt()))
       } else {
         return()
       }

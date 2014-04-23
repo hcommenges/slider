@@ -13,31 +13,25 @@ require(ggplot2)
 require(TraMineR)
 require(RColorBrewer)
 
+
 # slideplot function ----
 
-slideplot <- function(df, threshold, mask, showfreq, thickmin)
+slideplot <- function(df, threshold, mask, showfreq, thickmin, wgtvar = NULL)
 {
-  if(is.character(df[ , 1]) == TRUE){
-    uniqueVal <- sort(unique(unlist(df)))
-    df <- colwise(factor, levels = uniqueVal, labels = uniqueVal)(df)
-  } else {
-    uniqueVal <- sort(unique(unlist(df)))
-    df <- colwise(factor, levels = uniqueVal, labels = letters[seq(1, length(uniqueVal), 1)])(df)
-  }
-  
   stateAlphabet <- levels(unlist(df))
   timeLabels <- colnames(df)
   nbCol <- length(timeLabels)
   
   # create flows
-  transFlowslist <- list()
-  for(i in 1:(nbCol - 1)){
-    transFlows <- paste(paste(i, as.integer(df[ , i]), sep = "-"), paste(i + 1, as.integer(df[ , i + 1]), sep = "-"), sep = "_")
-    transFlowslist <- c(transFlowslist, transFlows)
-  }
-  concatFlows <- unlist(transFlowslist)
-  flowsTable <- as.data.frame(table(concatFlows))
-  colnames(flowsTable) <- c("FLOWID", "FREQ")
+  dfList <- split(df, f = row.names(df), drop = FALSE)
+  sortedList <- dfList[order(as.integer(names(dfList)))]
+  identList <- lapply(sortedList, FUN = unlist)
+  oriDesCouples <- lapply(identList, MakeCouples)
+  oriDesTab <- as.data.frame(do.call("rbind", oriDesCouples))
+  oriDesTab$WEIGHT <- ifelse(!is.null(wgtvar), wgtvar, 1)
+  moltenFlows <- melt(oriDesTab, id.vars = "WEIGHT", measure.vars = colnames(oriDesTab)[1:(ncol(oriDesTab)-1)])
+  tabCont <- tapply(moltenFlows$WEIGHT, moltenFlows$value, sum, na.rm = TRUE)
+  flowsTable <- data.frame(FLOWID = names(tabCont), FREQ = unname(tabCont))
   
   # split coordinates
   flowsTable$FLOWID <- as.character(flowsTable$FLOWID)
@@ -65,7 +59,6 @@ slideplot <- function(df, threshold, mask, showfreq, thickmin)
   
   
   # plot flows
-  
   if(mask == FALSE){
     slidePlot <- ggplot(flowsTable) + 
       geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBELOW), colour = "lightgrey", lineend = "round") +
@@ -75,7 +68,6 @@ slideplot <- function(df, threshold, mask, showfreq, thickmin)
       scale_size_continuous("Frequencies", range = c(thickmin, scaleValue)) +
       theme_bw() + theme(panel.grid.major = element_line(colour = NA), panel.grid.minor = element_line(colour = NA))
   }
-  
   else if(mask == TRUE){
     slidePlot <- ggplot(flowsTable) + 
       geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBELOW), colour = "white", lineend = "round") +
@@ -92,24 +84,35 @@ slideplot <- function(df, threshold, mask, showfreq, thickmin)
 }
 
 
-# TraMineR functions ----
+# TraMineR function : sequence definition ----
 
-# sequence definition
-
-seqdefinition <- function(df){
-  if(is.character(df[ , 1]) == TRUE){
-    uniqueVal <- sort(unique(unlist(df)))
-    df <- colwise(factor, levels = uniqueVal, labels = uniqueVal)(df)
-  } else {
-    uniqueVal <- sort(unique(unlist(df)))
-    df <- colwise(factor, levels = uniqueVal, labels = letters[seq(1, length(uniqueVal), 1)])(df)
-  }
-  stateAlphabet <- levels(unlist(df))
+seqdefinition <- function(df, wgt){
+    stateAlphabet <- levels(unlist(df))
   timeLabels <- colnames(df)
   nbCol <- length(timeLabels)
   colorPal <- brewer.pal(length(stateAlphabet), "Set3")
-  
-  stsObject <- seqdef(df, seq(1, nbCol, 1), states = stateAlphabet, labels = stateAlphabet, cpal = colorPal)
+  stsObject <- seqdef(df, seq(1, nbCol, 1), states = stateAlphabet, labels = stateAlphabet, cpal = colorPal, weights = wgt)
   
   return(stsObject)
 }
+
+
+# Other functions ----
+
+MakeCouples <- function(fac)
+{
+  coupleList <- list()
+  for(i in 1:(length(fac)-1)){
+    coupleItem <- paste(
+      paste(i, as.numeric(fac[i]), sep = "-"), 
+      paste(i + 1, as.numeric(fac[i + 1]), sep = "-"),
+      sep = "_")
+    coupleList[[length(coupleList) + 1]] <- coupleItem    
+  }
+  return(coupleList)
+}
+
+tabwgt <- function(fac, wgt){
+  return(tapply(wgt, fac, sum, na.rm = TRUE))
+}
+

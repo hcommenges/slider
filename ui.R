@@ -15,7 +15,6 @@ shinyUI(fluidPage(
                column(3, wellPanel(
                  tags$h4("Upload example data"),
                  actionButton(inputId = 'loadTestData', label = "Load example data"),
-                 
                  tags$h4("Upload your own data"),
                  checkboxInput("csvSettings", "CSV Options", FALSE),
                  conditionalPanel(
@@ -26,13 +25,13 @@ shinyUI(fluidPage(
                                 c(Comma = ",",
                                   Semicolon = ";",
                                   Tab = "\t"),
-                                "Comma"),
+                                ","),
                    
                    radioButtons("quote", "Quote",
                                 c(None = "",
                                   "Double Quote" = '"',
                                   "Single Quote" = "'"),
-                                "Double Quote")
+                                "")
                  ),
                  
                  # file input
@@ -41,12 +40,13 @@ shinyUI(fluidPage(
                            accept=c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
                  
                  # sliders
-                 tags$h4("Select time steps and subgroups"),
-                 selectInput(inputId = "timecol", label = "Choose time steps", choices = "", selected = "", multiple = TRUE),
-                 selectInput(inputId = "factcol1", label = "Choose subgroup (1st)", choices = "", selected = "", multiple = FALSE),
-                 uiOutput("slidermod1"),
-                 selectInput(inputId = "factcol2", label = "Choose subgroup (2nd)", choices = "", selected = "", multiple = FALSE),
-                 uiOutput("slidermod2")
+                 tags$h4("Select variables"),
+                 selectInput(inputId = "timecol", label = "Choose time steps (mandatory)", choices = "", selected = "", multiple = TRUE),
+                 uiOutput("selectwgt"),
+                 uiOutput("selectfac1"),
+                 uiOutput("selectmod1"),
+                 uiOutput("selectfac2"),
+                 uiOutput("selectmod2")
                )),
                column(9, 
                       verbatimTextOutput("datasummary"),
@@ -90,8 +90,12 @@ shinyUI(fluidPage(
     tabPanel("Transition rate",
              fluidRow(
                column(3, wellPanel(
-                 tags$h4("Parameters")
-                 
+                 tags$h4("Absolute or relative frequency"),
+                 radioButtons(inputId = "transparameter", label = "Choose content:",
+                              c("Absolute frequencies" = "absfreq",
+                                "Row percentages" = "rowpct",
+                                "Column percentages" = "colpct"),
+                              selected = "absfreq")
                )),
                column(9, 
                       verbatimTextOutput("transratetext"),
@@ -141,8 +145,10 @@ shinyUI(fluidPage(
                       plotOutput("seqdistr", width = "100%", height = "600px")))),
     
     
-      tabPanel("User guide", 
-               includeMarkdown("README.md"))
+    tabPanel("User guide", 
+             fluidRow(
+               column(2, wellPanel()),
+               column(10, includeMarkdown("README.md"))))
     )
   )
 )
