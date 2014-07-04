@@ -41,7 +41,12 @@ shinyUI(fluidPage(
                  
                  # sliders
                  tags$h4("Select variables"),
-                 selectInput(inputId = "timecol", label = "Choose time steps (mandatory)", choices = "", selected = "", multiple = TRUE),
+                 selectInput(inputId = "timecol", 
+                             label = "Choose time steps (mandatory)", 
+                             choices = "", 
+                             selected = "", 
+                             multiple = TRUE, 
+                             selectize = FALSE),
                  uiOutput("selectwgt"),
                  uiOutput("selectfac1"),
                  uiOutput("selectmod1"),

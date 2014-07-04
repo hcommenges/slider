@@ -27,8 +27,8 @@ slideplot <- function(df, threshold, mask, showfreq, thickmin, wgtvar = NULL)
   sortedList <- dfList[order(as.integer(names(dfList)))]
   identList <- lapply(sortedList, FUN = unlist)
   oriDesCouples <- lapply(identList, MakeCouples)
-  oriDesTab <- as.data.frame(do.call("rbind", oriDesCouples))
-  oriDesTab$WEIGHT <- ifelse(!is.null(wgtvar), wgtvar, 1)
+  oriDesTab <- as.data.frame(do.call("rbind", oriDesCouples), stringsAsFactors = FALSE)
+  if(!is.null(wgtvar)) {oriDesTab$WEIGHT <- wgtvar} else {oriDesTab$WEIGHT <- 1}
   moltenFlows <- melt(oriDesTab, id.vars = "WEIGHT", measure.vars = colnames(oriDesTab)[1:(ncol(oriDesTab)-1)])
   tabCont <- tapply(moltenFlows$WEIGHT, moltenFlows$value, sum, na.rm = TRUE)
   flowsTable <- data.frame(FLOWID = names(tabCont), FREQ = unname(tabCont))
@@ -101,18 +101,18 @@ seqdefinition <- function(df, wgt){
 
 MakeCouples <- function(fac)
 {
-  coupleList <- list()
+  coupleList <- vector()
   for(i in 1:(length(fac)-1)){
     coupleItem <- paste(
       paste(i, as.numeric(fac[i]), sep = "-"), 
       paste(i + 1, as.numeric(fac[i + 1]), sep = "-"),
       sep = "_")
-    coupleList[[length(coupleList) + 1]] <- coupleItem    
+    coupleList <- append(coupleList, coupleItem)
   }
   return(coupleList)
 }
 
-tabwgt <- function(fac, wgt){
+TabWgt <- function(fac, wgt){
   return(tapply(wgt, fac, sum, na.rm = TRUE))
 }
 

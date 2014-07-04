@@ -283,7 +283,7 @@ shinyServer(function(input, output, session) {
       if(!is.null(input$weightcol)){
         rowPercent <- seqtrate(createSts(), weighted = TRUE)
         oriStates <- selecData()[ , -ncol(selecData())]
-        tabCont <- colwise(tabwgt, wgt = selecWgt())(oriStates)
+        tabCont <- colwise(TabWgt, wgt = selecWgt())(oriStates)
         tabContAggreg <- apply(tabCont, 1, sum, na.rm = TRUE)
         absFreq <- rowPercent * tabContAggreg
         mode(absFreq) <- "integer"
