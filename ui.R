@@ -6,7 +6,8 @@
 shinyUI(fluidPage(
   titlePanel("SLIDER: Software for LongItudinal Data Exploration with R",
              tags$head(tags$link(rel = "icon", type = "image/png", href = "favicon.png"),
-                       tags$title("SLIDER: Software for LongItudinal Data Exploration with R"))
+                       tags$title("SLIDER: Software for LongItudinal Data Exploration with R"),
+                       includeScript("www/analytics.js"))
   ),
 
   tabsetPanel(
