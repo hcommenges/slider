@@ -13,11 +13,10 @@ GNU AFFERO GENERAL PUBLIC LICENSE
 
 Please cite the following references in publications:
 
-- **For the slide plot and the SLIDER application:** REF Mappemonde
+- **For the slide plot and the SLIDER application:** Commenges H., Pistre P., Cura R. (2014) SLIDER: Software for LongItudinal Data Exploration with R, *Cybergeo: European Journal of Geography*. 
 - **For the parallel coordinates plot:** Bürgin R., Ritschard G. (2012) Categorical parallel coordinate plot, *LaCOSA Lausanne Conference On Sequence Analysis*, University of Lausanne, June 6th-8th (Poster).
-- **For transition rate, index plot, frequency plot and distribution plot:**
-  - Gabadinho A., Ritschard G., Mueller N.S., Studer M. (2011) Analyzing and Visualizing State Sequences in R with TraMineR, *Journal of Statistical Software*, 40(4), pp.1-37.
-  - Gabadinho A., Ritschard G., Studer M., Mueller N.S. (2011) *Mining sequence data in R with the TraMineR package: a user's guide*, Department of Econometrics and Laboratory of Demography, University of Geneva.
+- **For transition rate, index plot, frequency plot and distribution plot:** Gabadinho A., Ritschard G., Mueller N.S., Studer M. (2011) Analyzing and Visualizing State Sequences in R with TraMineR, *Journal of Statistical Software*, 40(4), pp.1-37.
+
 
 ------
 ### How to
@@ -35,7 +34,7 @@ Please cite the following references in publications:
 ------
 #### Import-Export options
 
-- **Load example data**. Load example data from the study by McVicar and Anyadike-Danes (2002) on transition from school to work. This dataset is used in the TraMineR package (mvad) and in the reference paper (see `Citations` below).
+- **Load example data**. Load example data from the study by McVicar and Anyadike-Danes (2002) on transition from school to work. This dataset is used in the TraMineR package (mvad) and in the reference paper (see `Citation` below).
 
 - **Import CSV file**. The default parameters are comma as separator and no quoting character. You can change this setting, before uploading the CSV file, by checking the `CSV options` checkbox.
 
@@ -49,6 +48,26 @@ Please cite the following references in publications:
 
 - **Download**. Plots can be downloaded with the `Download` button. It creates a SVG file with a default size of 20cm (w) x 15 cm (h). You can set the size from 1 to 30 cm. Be aware that index plots can be very heavy if there is a lot of time steps and/or sequences.
 
+
+------
+#### Transition rate
+
+- **Frequencies**. Choose whether to show `absolute frequencies` of transitions, `row percentages` or `column percentages`.
+
+
+------
+#### Index, frequency and distribution plots
+
+- **Draw border**. Choose whether or not to draw borders between successive states.
+- **Index of sequences**. Choose which sequences to draw: you can select set any set of sequences from 1 to max.
+
+------
+#### Parallel coordinates plot for sequence data
+
+- **Embedding**. The embedding options of the TraMineR function are fixed to "non-embeddable" for the type of sequence and "most-frequent" for the embedding method.
+
+- **Squared symbol size**, **Line width** and **Translation zone**. Choose the size of the squared symbols drawn at the origin and destination of each segment, choose the line width factor and the size of the grey squares containing the squared symbols.
+
 ------
 #### Slide plot options
 
@@ -61,18 +80,5 @@ Please cite the following references in publications:
 - **Show frequencies**. Use this checkbox to show or mask the frequency of transitions. By checking the box, you show all the frequencies above the `threshold`.
 
 - **Minimal thickness**. The thickness of each segment is proportional to the frequency of the aggregated trajectories it represents. The thickness depends on three parameters: the `threshold` parameter, the maximal value of the dataset and the `minimal thickness` parameter. The `minimal thickness` is assigned to the threshold value and the maximal thickness is assigned to the maximal value. Fot that reason, you can modify the overall appearance using both parameters: `threshold` and `minimal thickness`.
-
-------
-#### Parallel coordinates plot for sequence data
-
-- **Embedding**. The embedding options of the TraMineR function are fixed to "non-embeddable" for the type of sequence and "most-frequent" for the embedding method.
-
-- **Squared symbol size**, **Line width** and **Translation zone**. Choose the size of the squared symbols drawn at the origin and destination of each segment, choose the line width factor and the size of the grey squares containing the squared symbols.
-
-------
-#### Index, frequency and distribution plots
-
-- **Draw border**. Choose whether or not to draw borders between successive states.
-- **Index of sequences**. Choose which sequences to draw: you can select set any set of sequences from 1 to max.
 
 ------

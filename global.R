@@ -6,39 +6,22 @@
 
 # load packages ----
 
-library(plyr)
-library(reshape2)
-library(RColorBrewer)
-library(ggplot2)
-library(TraMineR)
-library(RColorBrewer)
+require(plyr)
+require(reshape2)
+require(RColorBrewer)
+require(ggplot2)
+require(TraMineR)
+require(RColorBrewer)
 
 
 # slideplot function ----
 
-slideplot <- function(df, threshold, mask, showfreq, thickmin, wgtvar = NULL)
+slideplot <- function(listFlows, threshold, mask, showfreq, thickmin)
 {
-  stateAlphabet <- levels(unlist(df))
-  timeLabels <- colnames(df)
-  nbCol <- length(timeLabels)
-  
-  # create flows
-  dfList <- split(df, f = row.names(df), drop = FALSE)
-  sortedList <- dfList[order(as.integer(names(dfList)))]
-  identList <- lapply(sortedList, FUN = unlist)
-  oriDesCouples <- lapply(identList, MakeCouples)
-  oriDesTab <- as.data.frame(do.call("rbind", oriDesCouples), stringsAsFactors = FALSE)
-  if(!is.null(wgtvar)) {oriDesTab$WEIGHT <- wgtvar} else {oriDesTab$WEIGHT <- 1}
-  moltenFlows <- melt(oriDesTab, id.vars = "WEIGHT", measure.vars = colnames(oriDesTab)[1:(ncol(oriDesTab)-1)])
-  tabCont <- tapply(moltenFlows$WEIGHT, moltenFlows$value, sum, na.rm = TRUE)
-  flowsTable <- data.frame(FLOWID = names(tabCont), FREQ = unname(tabCont))
-  
-  # split coordinates
-  flowsTable$FLOWID <- as.character(flowsTable$FLOWID)
-  coordFlows <- colsplit(flowsTable$FLOWID, pattern = "_", names = c("COORDORI", "COORDDES"))
-  coordOri <- colsplit(coordFlows$COORDORI, pattern = "-", names = c("XORI", "YORI"))
-  coordDes <- colsplit(coordFlows$COORDDES, pattern = "-", names = c("XDES", "YDES"))
-  flowsTable <- cbind(flowsTable, coordOri, coordDes)
+  # get table of flows (cross-classification)
+  flowsTable <- listFlows$FLOWS
+  timeLabels <- listFlows$LABELS
+  stateAlphabet <- listFlows$ALPHABET
   
   # get min and max vales
   scaleValue <- thickmin * max(flowsTable$FREQ) / (threshold + 1)
@@ -87,7 +70,7 @@ slideplot <- function(df, threshold, mask, showfreq, thickmin, wgtvar = NULL)
 # TraMineR function : sequence definition ----
 
 seqdefinition <- function(df, wgt){
-    stateAlphabet <- levels(unlist(df))
+  stateAlphabet <- levels(unlist(df))
   timeLabels <- colnames(df)
   nbCol <- length(timeLabels)
   colorPal <- brewer.pal(length(stateAlphabet), "Set3")
@@ -97,7 +80,7 @@ seqdefinition <- function(df, wgt){
 }
 
 
-# Other functions ----
+# Internal functions ----
 
 MakeCouples <- function(fac)
 {
@@ -115,4 +98,33 @@ MakeCouples <- function(fac)
 TabWgt <- function(fac, wgt){
   return(tapply(wgt, fac, sum, na.rm = TRUE))
 }
+
+GetCrossFlows <- function(df, wgtvar = NULL)
+{
+  stateAlphabet <- levels(unlist(df))
+  timeLabels <- colnames(df)
+  nbCol <- length(timeLabels)
+  
+  # create flows
+  dfList <- split(df, f = row.names(df), drop = FALSE)
+  sortedList <- dfList[order(as.integer(names(dfList)))]
+  identList <- lapply(sortedList, FUN = unlist)
+  oriDesCouples <- lapply(identList, MakeCouples)
+  oriDesTab <- as.data.frame(do.call("rbind", oriDesCouples), stringsAsFactors = FALSE)
+  if(!is.null(wgtvar)) {oriDesTab$WEIGHT <- wgtvar} else {oriDesTab$WEIGHT <- 1}
+  moltenFlows <- melt(oriDesTab, id.vars = "WEIGHT", measure.vars = colnames(oriDesTab)[1:(ncol(oriDesTab)-1)])
+  tabCont <- tapply(moltenFlows$WEIGHT, moltenFlows$value, sum, na.rm = TRUE)
+  flowsTable <- data.frame(FLOWID = names(tabCont), FREQ = unname(tabCont))
+  
+  # split coordinates
+  flowsTable$FLOWID <- as.character(flowsTable$FLOWID)
+  coordFlows <- colsplit(flowsTable$FLOWID, pattern = "_", names = c("COORDORI", "COORDDES"))
+  coordOri <- colsplit(coordFlows$COORDORI, pattern = "-", names = c("XORI", "YORI"))
+  coordDes <- colsplit(coordFlows$COORDDES, pattern = "-", names = c("XDES", "YDES"))
+  flowsTable <- cbind(flowsTable, coordOri, coordDes)
+  
+  return(list(FLOWS = flowsTable, LABELS = timeLabels, ALPHABET = stateAlphabet))
+}
+
+
 

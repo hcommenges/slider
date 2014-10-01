@@ -108,6 +108,13 @@ shinyServer(function(input, output, session) {
       return(NULL)
     }
   })
+  
+  # create table of flows for the slide plot
+  createFlowsTab <- reactive({
+    df <- selecData()
+    getFlows <- GetCrossFlows(df = df, wgtvar = selecWgt())
+    return(getFlows)
+  })
 
   
   # create state sequence object (TraMineR)
@@ -126,8 +133,8 @@ shinyServer(function(input, output, session) {
   # dynamic sliders
   output$sliderthreshold <- renderUI({
     if(!is.null(readData()) && length(input$timecol) > 1){
-      flowtab <- selecData()
-      splot <- slideplot(flowtab, threshold = 1, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin, wgtvar = selecWgt())
+      flowstab <- createFlowsTab()
+      splot <- slideplot(listFlows = flowstab, threshold = 1, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin)
       maxfreq <- max(splot$data$FREQ)
       sliderInput(inputId = "inSlidersp", label = "Threshold", min = 0, max = maxfreq - 1, value = round(maxfreq / 4, digits = 0) , step = 1)
     } else{
@@ -233,8 +240,8 @@ shinyServer(function(input, output, session) {
   
   output$slideplot <- renderPlot({
     if(!is.null(readData()) && length(input$timecol) > 1){
-      flowtab <- selecData()
-      print(slideplot(flowtab, threshold = input$inSlidersp, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin, wgtvar = selecWgt()))
+      flowstab <- createFlowsTab()
+      print(slideplot(listFlows = flowstab, threshold = input$inSlidersp, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin))
     } else {
       return()
     }
@@ -372,8 +379,8 @@ shinyServer(function(input, output, session) {
     content = function(file) {
       svg(file, width = input$widthslide / 2.54, height = input$heightslide / 2.54, pointsize = 8)
       if(!is.null(readData()) && length(input$timecol) > 1){
-        flowtab <- selecData()
-        print(slideplot(flowtab, threshold = input$inSlidersp, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin, wgtvar = selecWgt()))
+        flowstab <- createFlowsTab()
+        print(slideplot(listFlows = flowstab, threshold = input$inSlidersp, mask = input$mask, showfreq = input$showfreq, thickmin = input$thickmin))
       } else {
         return()
       }
@@ -420,7 +427,7 @@ shinyServer(function(input, output, session) {
     })
   
   output$downloaddp <- downloadHandler(
-    filename = "DensityPlot.svg",
+    filename = "DistributionPlot.svg",
     content = function(file) {
       svg(file, width = input$widthseqd / 2.54, height = input$heightseqd / 2.54, pointsize = 8)
       if(!is.null(readData()) && length(input$timecol) > 1){
