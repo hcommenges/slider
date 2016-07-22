@@ -6,12 +6,12 @@
 
 # load packages ----
 
-require(plyr)
-require(reshape2)
-require(RColorBrewer)
-require(ggplot2)
-require(TraMineR)
-require(RColorBrewer)
+library(plyr)
+library(reshape2)
+library(RColorBrewer)
+library(ggplot2)
+library(TraMineR)
+library(RColorBrewer)
 
 
 # slideplot function ----
