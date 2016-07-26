@@ -11,6 +11,7 @@ library(reshape2)
 library(RColorBrewer)
 library(ggplot2)
 library(TraMineR)
+data(mvad) # example data set (TraMineR)
 library(RColorBrewer)
 
 
