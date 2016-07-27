@@ -36,7 +36,6 @@ shinyServer(function(input, output, session) {
         updateCol(session=session, columns=columnList)
         return(mytable)
       } else {
-        data(mvad) # example data set (TraMineR)
         dExample <- mvad[ , c(1, 15:86)]
         dExample <- dExample[ , c(1, seq(4, 66, 12))]
         dExample <- colwise(as.character)(dExample[ , 2:7])
