@@ -1,17 +1,15 @@
-# SLIDER: Software for LongItudinal Data Exploration with R
+## User guide
 
-
-[![DOI](https://zenodo.org/badge/15058059.svg)](https://zenodo.org/badge/latestdoi/15058059)
-
-## Description
+### Description
 Interactive tool for exploratory analysis of longitudinal data.
 
-## License
+------
+### License
 
 GNU AFFERO GENERAL PUBLIC LICENSE v3
 
-
-## Citation
+------
+### Citation
 
 Please cite the following references in publications:
 
@@ -20,9 +18,10 @@ Please cite the following references in publications:
 - **For transition rate, index plot, frequency plot and distribution plot:** Gabadinho A., Ritschard G., Mueller N.S., Studer M. (2011) Analyzing and Visualizing State Sequences in R with TraMineR, *Journal of Statistical Software*, 40(4), pp.1-37.
 
 
-## How to
+------
+### How to
 
-### Data requirements
+#### Data requirements
 
 - **Format and variables**. The data format is the so-called *STate-Sequence* (STS) format (see references below, Gabadinho *et al.*). Each individual may be described with two kinds of variables: `Factor variables` are categorical variables (nominal or ordinal) such as sex, profession, age groups, etc. `Time variables` are categorical variables characterizing the following states for each individual at several time steps.
 
@@ -32,8 +31,8 @@ Please cite the following references in publications:
 
 - **Alphabet**. The alphabet is the list of distinct modalities found in the time variables. The maximum length of the alphabet is set to 12 distinct modalities. Beyond this value, the plots are no longer readable.
 
-
-### Import-Export options
+------
+#### Import-Export options
 
 - **Load example data**. Load example data from the study by McVicar and Anyadike-Danes (2002) on transition from school to work. This dataset is used in the TraMineR package (mvad) and in the reference paper (see `Citation` below).
 
@@ -50,25 +49,27 @@ Please cite the following references in publications:
 - **Download**. Plots can be downloaded with the `Download` button. It creates a SVG file with a default size of 20cm (w) x 15 cm (h). You can set the size from 1 to 30 cm. Be aware that index plots can be very heavy if there is a lot of time steps and/or sequences.
 
 
-### Transition rate
+------
+#### Transition rate
 
 - **Frequencies**. Choose whether to show `absolute frequencies` of transitions, `row percentages` or `column percentages`.
 
 
-### Index, frequency and distribution plots
+------
+#### Index, frequency and distribution plots
 
 - **Draw border**. Choose whether or not to draw borders between successive states.
 - **Index of sequences**. Choose which sequences to draw: you can select set any set of sequences from 1 to max.
 
-
-### Parallel coordinates plot for sequence data
+------
+#### Parallel coordinates plot for sequence data
 
 - **Embedding**. The embedding options of the TraMineR function are fixed to "non-embeddable" for the type of sequence and "most-frequent" for the embedding method.
 
 - **Squared symbol size**, **Line width** and **Translation zone**. Choose the size of the squared symbols drawn at the origin and destination of each segment, choose the line width factor and the size of the grey squares containing the squared symbols.
 
-
-### Slide plot options
+------
+#### Slide plot options
 
 - **Download slide plot function**. The implementation of the slide plot may be downloaded with the dowload button (side panel). By clicking this button, you download a text file with .R extension which can be executed or sourced.
 
@@ -80,5 +81,4 @@ Please cite the following references in publications:
 
 - **Minimal thickness**. The thickness of each segment is proportional to the frequency of the aggregated trajectories it represents. The thickness depends on three parameters: the `threshold` parameter, the maximal value of the dataset and the `minimal thickness` parameter. The `minimal thickness` is assigned to the threshold value and the maximal thickness is assigned to the maximal value. Fot that reason, you can modify the overall appearance using both parameters: `threshold` and `minimal thickness`.
 
-
-
+------

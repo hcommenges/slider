@@ -14,7 +14,7 @@ shinyUI(fluidPage(
     tabPanel("User guide", 
              fluidRow(
                column(2),
-               column(7, includeMarkdown("README.md")),
+               column(7, includeMarkdown("README_app.md")),
                column(3))),
     
     tabPanel("Data summary",
