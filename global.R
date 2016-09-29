@@ -47,8 +47,8 @@ slideplot <- function(listFlows, threshold, mask, showfreq, thickmin)
     slidePlot <- ggplot(flowsTable) + 
       geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBELOW), colour = "lightgrey", lineend = "round") +
       geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQUPON), colour = "black", lineend = "round") +
-      scale_x_discrete("Timeline", labels = timeLabels) +
-      scale_y_discrete("Categories", labels = stateAlphabet) +
+      scale_x_continuous("Timeline", breaks = seq(1, length(timeLabels), 1), labels = timeLabels) +
+      scale_y_continuous("Categories", breaks = seq(1, length(timeLabels), 1), labels = stateAlphabet) +
       scale_size_continuous("Frequencies", range = c(thickmin, scaleValue)) +
       theme_bw() + theme(panel.grid.major = element_line(colour = NA), panel.grid.minor = element_line(colour = NA))
   }
@@ -56,8 +56,8 @@ slideplot <- function(listFlows, threshold, mask, showfreq, thickmin)
     slidePlot <- ggplot(flowsTable) + 
       geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBELOW), colour = "white", lineend = "round") +
       geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQUPON), colour = "black", lineend = "round") +
-      scale_x_discrete("Timeline", labels = timeLabels) +
-      scale_y_discrete("Categories", labels = stateAlphabet) +
+      scale_x_continuous("Timeline", breaks = seq(1, length(timeLabels), 1), labels = timeLabels) +
+      scale_y_continuous("Categories", breaks = seq(1, length(timeLabels), 1), labels = stateAlphabet) +
       scale_size_continuous("Frequencies", range = c(thickmin, scaleValue)) +
       theme_bw() + theme(panel.grid.major = element_line(colour = NA), panel.grid.minor = element_line(colour = NA))
   }
