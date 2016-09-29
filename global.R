@@ -6,23 +6,25 @@
 
 # load packages ----
 
+library(shinythemes)
 library(plyr)
 library(reshape2)
 library(RColorBrewer)
 library(ggplot2)
 library(TraMineR)
-data(mvad) # example data set (TraMineR)
 library(RColorBrewer)
 
 
 # slideplot function ----
 
-slideplot <- function(listFlows, threshold, mask, showfreq, thickmin)
-{
+SlidePlot <- function(listFlows, threshold, mask, showfreq, thickmin){
   # get table of flows (cross-classification)
   flowsTable <- listFlows$FLOWS
   timeLabels <- listFlows$LABELS
   stateAlphabet <- listFlows$ALPHABET
+  
+  print(timeLabels)
+  print(stateAlphabet)
   
   # get min and max vales
   scaleValue <- thickmin * max(flowsTable$FREQ) / (threshold + 1)
@@ -48,7 +50,7 @@ slideplot <- function(listFlows, threshold, mask, showfreq, thickmin)
       geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBELOW), colour = "lightgrey", lineend = "round") +
       geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQUPON), colour = "black", lineend = "round") +
       scale_x_continuous("Timeline", breaks = seq(1, length(timeLabels), 1), labels = timeLabels) +
-      scale_y_continuous("Categories", breaks = seq(1, length(timeLabels), 1), labels = stateAlphabet) +
+      scale_y_continuous("Categories", breaks = seq(1, length(stateAlphabet), 1), labels = stateAlphabet) +
       scale_size_continuous("Frequencies", range = c(thickmin, scaleValue)) +
       theme_bw() + theme(panel.grid.major = element_line(colour = NA), panel.grid.minor = element_line(colour = NA))
   }
@@ -57,7 +59,7 @@ slideplot <- function(listFlows, threshold, mask, showfreq, thickmin)
       geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQBELOW), colour = "white", lineend = "round") +
       geom_segment(aes(x = XORI, y = YORI, xend = XDES, yend = YDES, size = FREQUPON), colour = "black", lineend = "round") +
       scale_x_continuous("Timeline", breaks = seq(1, length(timeLabels), 1), labels = timeLabels) +
-      scale_y_continuous("Categories", breaks = seq(1, length(timeLabels), 1), labels = stateAlphabet) +
+      scale_y_continuous("Categories", breaks = seq(1, length(stateAlphabet), 1), labels = stateAlphabet) +
       scale_size_continuous("Frequencies", range = c(thickmin, scaleValue)) +
       theme_bw() + theme(panel.grid.major = element_line(colour = NA), panel.grid.minor = element_line(colour = NA))
   }
@@ -70,7 +72,7 @@ slideplot <- function(listFlows, threshold, mask, showfreq, thickmin)
 
 # TraMineR function : sequence definition ----
 
-seqdefinition <- function(df, wgt){
+CreateSeq <- function(df, wgt){
   stateAlphabet <- levels(unlist(df))
   timeLabels <- colnames(df)
   nbCol <- length(timeLabels)
@@ -83,8 +85,11 @@ seqdefinition <- function(df, wgt){
 
 # Internal functions ----
 
-MakeCouples <- function(fac)
-{
+RoundAccur <- function(val, acc){
+  return(round(val/acc) * acc)
+}
+
+MakeCouples <- function(fac){
   coupleList <- vector()
   for(i in 1:(length(fac)-1)){
     coupleItem <- paste(
@@ -96,13 +101,27 @@ MakeCouples <- function(fac)
   return(coupleList)
 }
 
+
+CreateTransRate <- function(stsobj, df, wgtbool, wgtvec){
+  rowPercent <- seqtrate(stsobj, weighted = wgtbool)
+  tabCont <- colwise(TabWgt, wgt = wgtvec)(df[, -ncol(df)])
+  tabContAggreg <- apply(tabCont, 1, sum, na.rm = TRUE)
+  absFreq <- round(rowPercent * tabContAggreg, digits = 0)
+  mode(absFreq) <- "integer"
+  colPercent <- t(t(absFreq) / apply(absFreq, 2, sum))
+  return(list(ROWPCT = rowPercent, COLPCT = colPercent, ABSFREQ = absFreq))
+}
+
 TabWgt <- function(fac, wgt){
   return(tapply(wgt, fac, sum, na.rm = TRUE))
 }
 
-GetCrossFlows <- function(df, wgtvar = NULL)
-{
-  stateAlphabet <- levels(unlist(df))
+
+GetCrossFlows <- function(df, wgtvar = NULL){
+  
+  uniqueVal <- sort(as.character(unique(unlist(df))))
+  df <- colwise(factor, levels = uniqueVal, labels = uniqueVal)(df)
+  stateAlphabet <- uniqueVal
   timeLabels <- colnames(df)
   nbCol <- length(timeLabels)
   

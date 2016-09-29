@@ -6,7 +6,7 @@ Interactive tool for exploratory analysis of longitudinal data.
 ------
 ### License
 
-GNU AFFERO GENERAL PUBLIC LICENSE
+GNU AFFERO GENERAL PUBLIC LICENSE v3
 
 ------
 ### Citation

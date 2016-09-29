@@ -4,12 +4,19 @@
 ##############################
 
 shinyUI(fluidPage(
+  theme = shinytheme("united"),
   titlePanel("SLIDER: Software for LongItudinal Data Exploration with R",
              tags$head(tags$link(rel = "icon", type = "image/png", href = "favicon.png"),
                        tags$title("SLIDER: Software for LongItudinal Data Exploration with R"))
   ),
-
+  
   tabsetPanel(
+    tabPanel("User guide", 
+             fluidRow(
+               column(2),
+               column(7, includeMarkdown("README.md")),
+               column(3))),
+    
     tabPanel("Data summary",
              fluidRow(
                column(3, wellPanel(
@@ -33,10 +40,7 @@ shinyUI(fluidPage(
                                   "Single Quote" = "'"),
                                 "")
                  ),
-                 
-                 # file input
-                 
-                 fileInput("file1", "Choose CSV File",
+                 fileInput("fileInput", "Choose CSV File",
                            accept=c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
                  
                  # sliders
@@ -46,17 +50,31 @@ shinyUI(fluidPage(
                              choices = "", 
                              selected = "", 
                              multiple = TRUE, 
-                             selectize = FALSE),
-                 uiOutput("selectwgt"),
-                 uiOutput("selectfac1"),
+                             selectize = TRUE),
+                 selectInput(inputId = "weightcol", 
+                             label = "Choose weighting variable (optional)", 
+                             choices = "",
+                             selected = "", 
+                             multiple = FALSE, 
+                             selectize = TRUE),
+                 selectInput(inputId = "factcol1", 
+                             label = "Choose 1st factor (optional)", 
+                             choices = "",
+                             selected = "", 
+                             multiple = FALSE, 
+                             selectize = TRUE),
                  uiOutput("selectmod1"),
-                 uiOutput("selectfac2"),
+                 selectInput(inputId = "factcol2", label = "Choose 2nd factor (optional)",
+                             choices = "",
+                             selected = "", 
+                             multiple = FALSE, 
+                             selectize = TRUE),
                  uiOutput("selectmod2")
                )),
                column(9, 
                       verbatimTextOutput("datasummary"),
                       dataTableOutput("contents")))),
-  
+    
     tabPanel("Transition rate",
              fluidRow(
                column(3, wellPanel(
@@ -90,7 +108,7 @@ shinyUI(fluidPage(
                column(3, wellPanel(
                  tags$h4("Set graphical parameters"), 
                  checkboxInput(inputId = "borderiplot", label = "Draw borders", value = FALSE),
-                 uiOutput("sliderseqi"),
+                 sliderInput(inputId = "sliderseqi", label = "Index of sequences", min = 1, max = 50, value = c(1, 10) , step = 1),
                  tags$h4("Download your plot"),
                  downloadButton("downloadip", "Download plot"),
                  numericInput(inputId = "widthseqi", label = "Width (cm)", value = 20, min = 1, max = 30),
@@ -134,7 +152,7 @@ shinyUI(fluidPage(
              fluidRow(
                column(3, wellPanel(
                  tags$h4("Set graphical parameters"), 
-                 uiOutput("sliderthreshold"),
+                 sliderInput(inputId = "sliderthreshold", label = "Threshold", min = 0, max = 10, value = 1, step = 1),
                  sliderInput(inputId = "thickmin", label = "Minimal thickness", min = 0, max = 2, value = 0.5, step = 0.1),
                  checkboxInput(inputId = "mask", label = "Mask values under threshold", value = FALSE),
                  checkboxInput(inputId = "showfreq", label = "Show frequencies", value = FALSE),
@@ -142,17 +160,12 @@ shinyUI(fluidPage(
                  downloadButton("downloadsp", "Download plot"),
                  numericInput(inputId = "widthslide", label = "Width (cm)", value = 20, min = 1, max = 30),
                  numericInput(inputId = "heightslide", label = "Height (cm)", value = 15, min = 1, max = 30)
-                 )),
+               )),
                column(9, 
                       verbatimTextOutput("slidetext"),
-                      plotOutput("slideplot", width = "100%", height = "600px")))),
-    
-    tabPanel("User guide", 
-             fluidRow(
-               column(2, wellPanel()),
-               column(10, includeMarkdown("README.md"))))
-    )
+                      plotOutput("slideplot", width = "100%", height = "600px"))))
   )
+)
 )
 
 
