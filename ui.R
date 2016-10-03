@@ -26,19 +26,21 @@ shinyUI(fluidPage(
                  checkboxInput("csvSettings", "CSV Options", FALSE),
                  conditionalPanel(
                    condition = "input.csvSettings == true",
-                   checkboxInput("header", "Header", TRUE),
-                   
-                   radioButtons("sep", "Separator",
+                   selectInput("encodtab", "Character encoding", choices = c(UTF8 = "UTF-8", Latin1 = "latin1"), selected = "UTF-8", multiple = FALSE, width = "50%"),
+                   radioButtons("sepcol", "Separateur de colonnes",
                                 c(Comma = ",",
                                   Semicolon = ";",
-                                  Tab = "\t"),
+                                  Tabulation = "\t"),
                                 ","),
-                   
-                   radioButtons("quote", "Quote",
+                   radioButtons("sepdec", "Separateur décimal",
+                                c(Point = ".",
+                                  Comma = ","),
+                                "."),
+                   radioButtons("quote", "Guillemets",
                                 c(None = "",
                                   "Double Quote" = '"',
                                   "Single Quote" = "'"),
-                                "")
+                                '"')
                  ),
                  fileInput("fileInput", "Choose CSV File",
                            accept=c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
