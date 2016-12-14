@@ -9,6 +9,7 @@ shinyServer(function(input, output, session) {
   # load data ----
   
   baseData <- reactiveValues(df = NULL)
+  data(mvad)
   
   observe({
     req(input$fileInput$datapath)
@@ -23,7 +24,6 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$loadTestData, {
-    data(mvad)
     dataTest <- mvad[ , c(1, 15:86)]
     dataTest <- dataTest[ , c(1, seq(4, 66, 12))]
     dataTest <- colwise(as.character)(dataTest[ , 2:7])
@@ -54,6 +54,7 @@ shinyServer(function(input, output, session) {
   
   
   observe({
+    req(baseData$d, input$timecol)
     if(length(input$timecol) > 1){
       maxFreq <- RoundAccur(val = max(table(c(unlist(selecData()$TBL)))) / (ncol(selecData()$TBL) + 1), acc = 10)
       updateSliderInput(session = session,
