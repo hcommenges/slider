@@ -54,7 +54,7 @@ shinyServer(function(input, output, session) {
   
   
   observe({
-    req(baseData$d, input$timecol)
+    req(baseData$df, input$timecol)
     if(length(input$timecol) > 1){
       maxFreq <- RoundAccur(val = max(table(c(unlist(selecData()$TBL)))) / (ncol(selecData()$TBL) + 1), acc = 10)
       updateSliderInput(session = session,
