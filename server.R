@@ -28,29 +28,52 @@ shinyServer(function(input, output, session) {
     dataTest <- dataTest[ , c(1, seq(4, 66, 12))]
     dataTest <- colwise(as.character)(dataTest[ , 2:7])
     baseData$df <- dataTest
+    
+    columnList <- colnames(dataTest)
+    UpdateExample(session = session, mycolumns = columnList)
   })
   
   
   # update fields ----
   
   observe({
-    columnList <- c(colnames(baseData$df))
-    columnListFirst <- c("", columnList)
-    
-    updateSelectInput(session = session,
-                      inputId = "timecol",
-                      choices = columnList)
-    updateSelectInput(session = session,
-                      inputId = "weightcol",
-                      choices = columnListFirst)
-    updateSelectInput(session = session,
-                      inputId = "factcol1",
-                      choices = columnListFirst)
-    updateSelectInput(session = session,
-                      inputId = "factcol2",
-                      choices = columnListFirst)
+    myTable <- baseData$df
+    columnList <- c(colnames(myTable))
+    UpdateOwn(session = session, mycolumns = columnList)
     
   })
+  
+  UpdateExample <- function(session, mycolumns){
+    updateSelectInput(session = session,
+                      inputId = "timecol",
+                      choices = mycolumns,
+                      selected = c("Sep.93", "Sep.94", "Sep.95", "Sep.96", "Sep.97", "Sep.98"))
+    updateSelectInput(session = session,
+                      inputId = "weightcol",
+                      choices = c("", mycolumns))
+    updateSelectInput(session = session,
+                      inputId = "factcol1",
+                      choices = c("", mycolumns))
+    updateSelectInput(session = session,
+                      inputId = "factcol2",
+                      choices = c("", mycolumns))
+  }
+  
+  UpdateOwn <- function(session, mycolumns){
+    updateSelectInput(session = session,
+                      inputId = "timecol",
+                      choices = mycolumns)
+    updateSelectInput(session = session,
+                      inputId = "weightcol",
+                      choices = c("", mycolumns))
+    updateSelectInput(session = session,
+                      inputId = "factcol1",
+                      choices = c("", mycolumns))
+    updateSelectInput(session = session,
+                      inputId = "factcol2",
+                      choices = c("", mycolumns))
+  }
+    
   
   
   observe({
