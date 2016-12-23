@@ -233,7 +233,7 @@ shinyServer(function(input, output, session) {
     tratetext <- "Transition rates are the frequency of transition from one state to another, as observed in the dataset. \nIt may be read as an origin-detination matrix, with absolute or relative frequency."  
   })
   
-  output$transrate <- renderTable({
+  output$transrate <- renderTable(rownames = TRUE, expr = {
     req(baseData$df, input$timecol)
     wgtBool <- is.null(input$weightcol)
     resTrans <- CreateTransRate(stsobj = createSts(), wgtbool = wgtBool, df = selecData()$TBL, wgtvec = selecData()$WGT)
