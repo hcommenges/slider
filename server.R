@@ -8,46 +8,47 @@ shinyServer(function(input, output, session) {
   
   # load data ----
   
-  baseData <- reactiveValues(df = NULL)
+  baseData <- reactiveValues(df = NULL, dataSource = NULL)
   data(mvad)
   
-  observe({
-    req(input$fileInput$datapath)
-    oriData <- read.csv(file = input$fileInput$datapath,
-                        sep = input$sepcol,
-                        quote = input$quote,
-                        dec = input$sepdec,
-                        encoding = input$encodtab,
-                        stringsAsFactor = FALSE,
-                        check.names = FALSE)
-    baseData$df <- oriData
+  observeEvent(input$loadTestData,{
+    baseData$dataSource <- "exampleData"
   })
-  
-  observeEvent(input$loadTestData, {
-    dataTest <- mvad[ , c(1, 15:86)]
-    dataTest <- dataTest[ , c(1, seq(4, 66, 12))]
-    dataTest <- colwise(as.character)(dataTest[ , 2:7])
-    baseData$df <- dataTest
-    
-    columnList <- colnames(dataTest)
-    UpdateExample(session = session, mycolumns = columnList)
-  })
-  
-  
-  # update fields ----
   
   observe({
-    myTable <- baseData$df
-    columnList <- c(colnames(myTable))
-    UpdateOwn(session = session, mycolumns = columnList)
-    
+    req(input$fileInput)
+    baseData$dataSource <- input$fileInput$datapath
   })
+  
+  observe({
+    req(baseData$dataSource)
+    if (baseData$dataSource == "exampleData"){
+      dataTest <- mvad[ , c(1, 15:86)]
+      dataTest <- dataTest[ , c(1, seq(4, 66, 12))]
+      dataTest <- colwise(as.character)(dataTest[ , 2:7])
+      columnList <- colnames(dataTest)
+      UpdateExample(session = session, mycolumns = columnList)
+      baseData$df <- dataTest
+    } else {
+      userData <- read.csv(file = input$fileInput$datapath,
+                             sep = input$sepcol,
+                             quote = input$quote,
+                             dec = input$sepdec,
+                             encoding = input$encodtab,
+                             stringsAsFactor = FALSE,
+                             check.names = FALSE)
+      columnList <- c(colnames(userData))
+      UpdateOwn(session = session, mycolumns = columnList)
+      baseData$df<- userData
+    }
+  })
+ 
   
   UpdateExample <- function(session, mycolumns){
     updateSelectInput(session = session,
                       inputId = "timecol",
                       choices = mycolumns,
-                      selected = c("Sep.93", "Sep.94", "Sep.95", "Sep.96", "Sep.97", "Sep.98"))
+                      selected = paste0("Sep.", 93:98))
     updateSelectInput(session = session,
                       inputId = "weightcol",
                       choices = c("", mycolumns))
@@ -77,7 +78,7 @@ shinyServer(function(input, output, session) {
   
   
   observe({
-    req(baseData$df, input$timecol)
+    req(selecData())
     if(length(input$timecol) > 1){
       maxFreq <- RoundAccur(val = max(table(c(unlist(selecData()$TBL)))) / (ncol(selecData()$TBL) + 1), acc = 10)
       updateSliderInput(session = session,
@@ -96,7 +97,7 @@ shinyServer(function(input, output, session) {
   
   selecData <- reactive({
     req(baseData$df, input$timecol)
-    if(length(input$timecol) > 1){
+    if(length(input$timecol) > 1 && (input$timecol %in% colnames(baseData$df))){
       # filter rows and select columns
       if (!is.null(input$factmod1) & is.null(input$factmod2)) {
         dataSel <- baseData$df[baseData$df[, input$factcol1] %in% input$factmod1, ]
